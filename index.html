@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AbsensiGPS — Sistem Absensi Berbasis GPS</title>
+    <meta name="description" content="Aplikasi absensi modern berbasis GPS untuk karyawan dan perusahaan. Clock-in dan clock-out dengan verifikasi lokasi GPS real-time." />
+    <meta name="theme-color" content="#0a0d1a" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8b84b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'/><circle cx='12' cy='10' r='3'/></svg>" />
+  </head>
+  <body>
+
+    <!-- Toast container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ─── LOGIN SCREEN ────────────────────────────────────────────────── -->
+    <div id="login-container" class="login-screen">
+      <div class="login-card">
+        <div class="login-gold-line"></div>
+        <div class="login-brand">
+          <div class="login-logo-icon">
+            <!-- map-pin -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <h1 class="login-title">Absensi<span>GPS</span></h1>
+          <p class="login-subtitle">Sistem Absensi Digital Premium</p>
+        </div>
+        
+        <form id="login-form">
+          <div class="form-group">
+            <label class="form-label" for="login-username">Username</label>
+            <input type="text" id="login-username" class="form-input" placeholder="Masukkan username..." required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-input" placeholder="Masukkan password..." required />
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+            <!-- log-in -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Masuk Aplikasi
+          </button>
+        </form>
+
+        <div class="login-hints">
+          <p><strong>Demo Akun:</strong></p>
+          <div class="hint-grid">
+            <div><span>Admin:</span> <code>admin</code> / <code>admin123</code></div>
+            <div><span>Staff:</span> <code>rhein</code> / <code>rhein123</code></div>
+            <div><span>HR:</span> <code>budi</code> / <code>budi123</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── EMPLOYEE DASHBOARD (APP SHELL) ──────────────────────────────── -->
+    <div id="employee-container" class="app-shell" style="display: none;">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <div class="brand-icon">
+              <!-- map-pin -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <span class="brand-name">AbsensiGPS</span>
+          </div>
+          <div class="brand-sub">Karyawan Portal</div>
+        </div>
+
+        <!-- Employee Profile -->
+        <div class="sidebar-employee">
+          <div class="employee-card">
+            <div class="employee-avatar">
+              <!-- user-circle -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="employee-info">
+              <div id="employee-name" class="employee-name">—</div>
+              <div id="employee-position" class="employee-meta">—</div>
+              <div id="employee-dept" class="employee-meta" style="font-size:10px;opacity:.7">—</div>
+              <div id="employee-id" class="employee-id">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Menu Utama</div>
+          <button id="tab-home" class="tab-btn active" data-tab="home">
+            <span class="tab-icon">
+              <!-- home -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </span> Beranda
+          </button>
+          <button id="tab-map" class="tab-btn" data-tab="map">
+            <span class="tab-icon">
+              <!-- map -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            </span> Peta GPS
+          </button>
+          <button id="tab-history" class="tab-btn" data-tab="history">
+            <span class="tab-icon">
+              <!-- list -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </span> Riwayat
+          </button>
+          <button id="tab-leave" class="tab-btn" data-tab="leave">
+            <span class="tab-icon">
+              <!-- file-text -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </span> Pengajuan
+          </button>
+          <div class="nav-section-label" style="margin-top:8px">Lainnya</div>
+          <button id="tab-settings" class="tab-btn" data-tab="settings">
+            <span class="tab-icon">
+              <!-- settings -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </span> Pengaturan
+          </button>
+          <button id="btn-emp-logout" class="tab-btn" style="margin-top: auto; color: var(--rose-400)">
+            <span class="tab-icon">
+              <!-- log-out -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </span> Keluar
+          </button>
+        </nav>
+
+        <!-- GPS Status -->
+        <div class="sidebar-gps">
+          <div id="gps-status" class="gps-status gps-status--idle">
+            <div id="gps-dot" class="gps-dot gps-dot--idle"></div>
+            <div class="gps-info-wrap">
+              <div id="gps-text">Menginisialisasi GPS...</div>
+              <div id="gps-accuracy"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Header -->
+        <header class="app-header">
+          <div class="header-clock">
+            <div id="live-time">00:00:00</div>
+            <div id="live-date">—</div>
+          </div>
+          <div class="header-actions">
+            <span id="stat-month" class="header-badge">—</span>
+          </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="content-area">
+
+          <!-- HOME PANEL -->
+          <section id="panel-home" class="tab-panel active">
+            <p class="page-title">Absensi Harian</p>
+            <p class="page-sub">Lakukan clock-in dan clock-out dengan verifikasi lokasi GPS</p>
+
+            <div class="hero-section section-gap">
+              <div class="gold-accent-line"></div>
+              <div class="hero-title">✦ Selamat Bekerja</div>
+              <div class="hero-greeting" id="hero-greeting">Halo, Karyawan!</div>
+              <div class="hero-sub">Pastikan GPS aktif sebelum melakukan absensi</div>
+
+              <div class="action-buttons">
+                <button id="btn-clock-in" class="btn btn-clock-in">
+                  <span class="btn-icon">
+                    <!-- play-circle -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                  </span>
+                  Clock In
+                </button>
+                <button id="btn-clock-out" class="btn btn-clock-out" disabled>
+                  <span class="btn-icon">
+                    <!-- stop-circle -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6"/></svg>
+                  </span>
+                  Clock Out
+                </button>
+                <div id="btn-spinner" class="hidden">
+                  <div class="spinner"></div>
+                  Mendapatkan GPS...
+                </div>
+              </div>
+
+              <div class="today-card">
+                <div class="card-header">
+                  <span class="card-title">Status Hari Ini</span>
+                </div>
+                <div id="today-status">
+                  <div class="status-empty">
+                    <div class="status-empty__icon">
+                      <!-- clipboard -->
+                      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                    </div>
+                    <p>Belum ada absensi hari ini</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- GPS Info -->
+            <div class="gps-panel section-gap">
+              <div class="card-header">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px;">
+                  <!-- radio -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                  Informasi GPS
+                </span>
+                <button id="btn-refresh-gps" class="btn-sm">
+                  <!-- refresh-cw -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Refresh
+                </button>
+              </div>
+              <div id="gps-info">
+                <div class="gps-grid">
+                  <div class="gps-item"><span class="gps-label">Latitude</span><span class="gps-val">—</span></div>
+                  <div class="gps-item"><span class="gps-label">Longitude</span><span class="gps-val">—</span></div>
+                  <div class="gps-item"><span class="gps-label">Akurasi</span><span class="gps-val">—</span></div>
+                  <div class="gps-item"><span class="gps-label">Altitude</span><span class="gps-val">—</span></div>
+                </div>
+              </div>
+              <div id="distance-info"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid section-gap">
+              <div class="stat-card stat-card--blue">
+                <div class="stat-icon">
+                  <!-- calendar -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div id="stat-present" class="stat-value">0</div>
+                <div class="stat-label">Total Hadir</div>
+                <div class="stat-sub">Bulan ini</div>
+              </div>
+              <div class="stat-card stat-card--green">
+                <div class="stat-icon">
+                  <!-- clock -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div id="stat-ontime" class="stat-value">0</div>
+                <div class="stat-label">Tepat Waktu</div>
+                <div class="stat-sub">Bulan ini</div>
+              </div>
+              <div class="stat-card stat-card--amber">
+                <div class="stat-icon">
+                  <!-- alert-triangle -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div id="stat-late" class="stat-value">0</div>
+                <div class="stat-label">Terlambat</div>
+                <div class="stat-sub">Bulan ini</div>
+              </div>
+            </div>
+
+            <!-- Pengumuman -->
+            <div class="section-gap">
+              <div class="card-header" style="margin-bottom:12px">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <!-- bell --><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  Pengumuman
+                </span>
+              </div>
+              <div id="emp-announcements">
+                <p style="color:var(--text-muted);font-size:13px">Memuat pengumuman...</p>
+              </div>
+            </div>
+          </section>
+
+
+          <!-- MAP PANEL -->
+          <section id="panel-map" class="tab-panel">
+            <p class="page-title" style="display:flex;align-items:center;gap:10px;">
+              <!-- map -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              Peta GPS
+            </p>
+            <p class="page-sub">Visualisasi lokasi absensi dan posisi kantor</p>
+            <div class="map-wrapper section-gap">
+              <div id="map-container"></div>
+              <div class="map-overlay">
+                <div class="map-overlay-title">Legenda</div>
+                <div class="map-legend-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="var(--sapphire-400)" stroke="var(--sapphire-400)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  Posisi Anda
+                </div>
+                <div class="map-legend-item">
+                  <!-- building-2 -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+                  Kantor
+                </div>
+                <div class="map-legend-item"><span style="color:#10d98a;font-weight:700">▲</span> Clock In</div>
+                <div class="map-legend-item"><span style="color:#ef4444;font-weight:700">▼</span> Clock Out</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- HISTORY PANEL -->
+          <section id="panel-history" class="tab-panel">
+            <div class="table-header">
+              <div>
+                <p class="page-title" style="display:flex;align-items:center;gap:10px;">
+                  <!-- list -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  Riwayat Absensi
+                </p>
+                <p class="page-sub" style="margin-bottom:0">Semua data absensi yang tersimpan</p>
+              </div>
+              <div class="table-actions">
+                <button id="btn-export" class="btn-sm">
+                  <!-- download -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export CSV
+                </button>
+                <button id="btn-clear-history" class="btn-danger">
+                  <!-- trash-2 -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  Hapus
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <!-- Desktop table header (hidden on mobile) -->
+              <div class="history-desktop-head">
+                <span>Tanggal</span>
+                <span>Clock In</span>
+                <span>Clock Out</span>
+                <span>Durasi</span>
+                <span>Status</span>
+                <span>Koordinat</span>
+              </div>
+              <!-- History card list (rendered by ui.ts) -->
+              <div id="history-list"></div>
+              <div id="history-empty" class="history-empty">
+                <div class="history-empty__icon">
+                  <!-- inbox -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                </div>
+                <div class="history-empty__text">Belum ada riwayat absensi</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SETTINGS PANEL -->
+          <section id="panel-settings" class="tab-panel">
+            <p class="page-title" style="display:flex;align-items:center;gap:10px;">
+              <!-- settings -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Pengaturan
+            </p>
+            <p class="page-sub">Konfigurasi lokasi kantor, jam kerja, dan profil karyawan</p>
+
+            <div class="settings-grid">
+              <div class="settings-section">
+                <div class="settings-section-title">
+                  <!-- user -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  Profil Karyawan
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-emp-name">Nama Lengkap</label>
+                  <input id="setting-emp-name" type="text" class="form-input" placeholder="Masukkan nama..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-emp-id">ID Karyawan</label>
+                  <input id="setting-emp-id" type="text" class="form-input" placeholder="EMP001..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-emp-pos">Jabatan</label>
+                  <input id="setting-emp-pos" type="text" class="form-input" placeholder="Staff, Manager, dll..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-emp-dept">Departemen</label>
+                  <input id="setting-emp-dept" type="text" class="form-input" placeholder="IT, HR, Finance, dll..." />
+                </div>
+              </div>
+
+              <div class="settings-section">
+                <div class="settings-section-title">
+                  <!-- building-2 -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
+                  Lokasi Kantor
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-office-name">Nama Kantor</label>
+                  <input id="setting-office-name" type="text" class="form-input" placeholder="Kantor Pusat..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-lat">Latitude</label>
+                  <input id="setting-lat" type="number" step="any" class="form-input" placeholder="-6.2088" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-lng">Longitude</label>
+                  <input id="setting-lng" type="number" step="any" class="form-input" placeholder="106.8456" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-radius">Radius Absensi (meter)</label>
+                  <input id="setting-radius" type="number" class="form-input" placeholder="200" />
+                </div>
+              </div>
+
+              <div class="settings-section">
+                <div class="settings-section-title">
+                  <!-- clock -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Jam Kerja
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-start">Jam Masuk</label>
+                  <input id="setting-start" type="time" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-end">Jam Pulang</label>
+                  <input id="setting-end" type="time" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="setting-late">Toleransi Terlambat (menit)</label>
+                  <input id="setting-late" type="number" class="form-input" placeholder="15" />
+                </div>
+                <button id="btn-save-settings" class="btn-primary">
+                  <!-- save -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Simpan Pengaturan
+                </button>
+              </div>
+
+              <div class="settings-section">
+                <div class="settings-section-title">
+                  <!-- alert-triangle -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--rose-400)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Zona Bahaya
+                </div>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+                  Tindakan di bawah ini tidak dapat dibatalkan. Harap berhati-hati.
+                </p>
+                <button id="btn-clear-history2" class="btn-danger" onclick="document.getElementById('btn-clear-history').click()">
+                  <!-- trash-2 -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  Hapus Semua Riwayat Absensi
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- LEAVE / PENGAJUAN PANEL -->
+          <section id="panel-leave" class="tab-panel">
+            <p class="page-title" style="display:flex;align-items:center;gap:10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Pengajuan
+            </p>
+            <p class="page-sub">Ajukan izin, cuti, lembur, atau koreksi absen</p>
+
+            <!-- Saldo Cuti -->
+            <div id="leave-balance-display" class="leave-balance-grid section-gap"></div>
+
+            <!-- Sub-tabs -->
+            <div class="leave-subtabs section-gap">
+              <button class="leave-subtab active" data-leave-tab="leave">Izin / Cuti / Sakit</button>
+              <button class="leave-subtab" data-leave-tab="overtime">Lembur</button>
+              <button class="leave-subtab" data-leave-tab="correction">Koreksi Absen</button>
+            </div>
+
+            <!-- Form Izin/Cuti/Sakit -->
+            <div id="leave-form-wrapper" class="settings-section section-gap">
+              <div class="settings-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Pengajuan Baru
+              </div>
+              <form id="leave-form">
+                <div class="form-group">
+                  <label class="form-label" for="leave-type">Jenis Pengajuan</label>
+                  <select id="leave-type" class="form-input">
+                    <option value="izin">Izin (Keperluan Pribadi)</option>
+                    <option value="sakit">Sakit (Surat Dokter)</option>
+                    <option value="cuti">Cuti Tahunan</option>
+                  </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div class="form-group">
+                    <label class="form-label" for="leave-start">Tanggal Mulai</label>
+                    <input id="leave-start" type="date" class="form-input" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="leave-end">Tanggal Akhir</label>
+                    <input id="leave-end" type="date" class="form-input" required />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="leave-reason">Alasan / Keterangan</label>
+                  <textarea id="leave-reason" class="form-input" rows="3" placeholder="Tuliskan alasan pengajuan Anda..." required style="resize:vertical;min-height:80px"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Kirim Pengajuan
+                </button>
+              </form>
+            </div>
+
+            <!-- Form Lembur -->
+            <div id="overtime-form-wrapper" class="settings-section section-gap" style="display:none">
+              <div class="settings-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Pengajuan Lembur
+              </div>
+              <form id="overtime-form">
+                <div class="form-group">
+                  <label class="form-label" for="ot-date">Tanggal Lembur</label>
+                  <input id="ot-date" type="date" class="form-input" required />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div class="form-group">
+                    <label class="form-label" for="ot-start">Jam Mulai</label>
+                    <input id="ot-start" type="time" class="form-input" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="ot-end">Jam Selesai</label>
+                    <input id="ot-end" type="time" class="form-input" required />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ot-reason">Keperluan Lembur</label>
+                  <textarea id="ot-reason" class="form-input" rows="3" placeholder="Deskripsikan pekerjaan yang akan dilakukan..." required style="resize:vertical;min-height:80px"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Kirim Pengajuan Lembur
+                </button>
+              </form>
+            </div>
+
+            <!-- Form Koreksi Absen -->
+            <div id="correction-form-wrapper" class="settings-section section-gap" style="display:none">
+              <div class="settings-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Koreksi Absen
+              </div>
+              <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px">Lupa absen atau data tidak sesuai? Ajukan koreksi dengan alasan yang jelas.</p>
+              <form id="correction-form">
+                <div class="form-group">
+                  <label class="form-label" for="corr-date">Tanggal yang Dikoreksi</label>
+                  <input id="corr-date" type="date" class="form-input" required />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div class="form-group">
+                    <label class="form-label" for="corr-clock-in">Clock In (opsional)</label>
+                    <input id="corr-clock-in" type="time" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="corr-clock-out">Clock Out (opsional)</label>
+                    <input id="corr-clock-out" type="time" class="form-input" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="corr-reason">Alasan Koreksi</label>
+                  <textarea id="corr-reason" class="form-input" rows="3" placeholder="Contoh: Lupa clock in karena sistem error, sudah konfirmasi ke atasan langsung..." required style="resize:vertical;min-height:80px"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Kirim Koreksi Absen
+                </button>
+              </form>
+            </div>
+
+            <!-- Riwayat Pengajuan -->
+            <div class="section-gap">
+              <div class="card-header" style="margin-bottom:14px">
+                <span class="card-title">Riwayat Pengajuan Saya</span>
+              </div>
+              <div id="leave-history-list"></div>
+            </div>
+          </section>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- ─── EMPLOYEE MOBILE BOTTOM NAV ──────────────────────────────────── -->
+    <nav id="emp-mobile-nav" class="mobile-nav" style="display: none;">
+      <button class="nav-item active" data-tab="home">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span class="nav-item-label">Beranda</span>
+      </button>
+      <button class="nav-item" data-tab="map">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        </span>
+        <span class="nav-item-label">Peta</span>
+      </button>
+      <button class="nav-item" data-tab="history">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </span>
+        <span class="nav-item-label">Riwayat</span>
+      </button>
+      <button class="nav-item" data-tab="leave">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </span>
+        <span class="nav-item-label">Pengajuan</span>
+      </button>
+      <button class="nav-item" data-tab="settings">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span class="nav-item-label">Pengaturan</span>
+      </button>
+      <button id="emp-mobile-logout" class="nav-item">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span>
+        <span class="nav-item-label">Keluar</span>
+      </button>
+    </nav>
+
+    <!-- ─── HR MOBILE BOTTOM NAV ─────────────────────────────────────────── -->
+    <nav id="hr-mobile-nav" class="mobile-nav" style="display: none;">
+      <button class="nav-item active hrtab-btn" data-hrtab="overview">
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+        <span class="nav-item-label">Ringkasan</span>
+      </button>
+      <button class="nav-item hrtab-btn" data-hrtab="approval">
+        <span class="nav-item-icon" style="position:relative">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="hr-pending-badge" style="position:absolute;top:-4px;right:-6px;background:var(--rose-400);color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:none;align-items:center;justify-content:center;padding:0 3px">0</span>
+        </span>
+        <span class="nav-item-label">Approval</span>
+      </button>
+      <button class="nav-item hrtab-btn" data-hrtab="employees">
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="nav-item-label">Karyawan</span>
+      </button>
+      <button class="nav-item hrtab-btn" data-hrtab="reports">
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+        <span class="nav-item-label">Laporan</span>
+      </button>
+      <button class="nav-item hrtab-btn" data-hrtab="announce">
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+        <span class="nav-item-label">Pengumuman</span>
+      </button>
+      <button id="hr-mobile-logout" class="nav-item">
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+        <span class="nav-item-label">Keluar</span>
+      </button>
+    </nav>
+
+    <!-- ─── HR DASHBOARD ──────────────────────────────────────────────────── -->
+    <div id="hr-container" class="app-shell" style="display: none;">
+      <!-- Sidebar HR -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <div class="brand-icon" style="background:rgba(99,102,241,0.15);color:var(--sapphire-400)">
+              <!-- users --><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <span class="brand-name">AbsensiGPS</span>
+          </div>
+          <div class="brand-sub">HR Portal</div>
+        </div>
+
+        <div class="sidebar-employee">
+          <div class="employee-card">
+            <div class="employee-avatar" style="background:rgba(99,102,241,0.12);color:var(--sapphire-400)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="employee-info">
+              <div id="hr-user-name" class="employee-name">HR Manager</div>
+              <div class="employee-meta" style="color:var(--sapphire-400)">Human Resources</div>
+              <div class="employee-id">HR Portal</div>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">HR Panel</div>
+          <button class="tab-btn hrtab-btn active" data-hrtab="overview">
+            <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span> Ringkasan
+          </button>
+          <button class="tab-btn hrtab-btn" data-hrtab="approval" style="position:relative">
+            <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span> Approval
+            <span class="hr-pending-badge" style="margin-left:auto;background:var(--rose-400);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 4px">0</span>
+          </button>
+          <button class="tab-btn hrtab-btn" data-hrtab="employees">
+            <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Data Karyawan
+          </button>
+          <button class="tab-btn hrtab-btn" data-hrtab="reports">
+            <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Laporan
+          </button>
+          <button class="tab-btn hrtab-btn" data-hrtab="announce">
+            <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Pengumuman
+          </button>
+          <button id="btn-hr-logout" class="tab-btn" style="margin-top:auto;color:var(--rose-400)">
+            <span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Keluar
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Main HR Content -->
+      <div class="main-content">
+        <header class="app-header">
+          <div class="header-clock">
+            <div id="hr-live-time" style="font-family:var(--font-mono);font-size:30px;font-weight:600;background:linear-gradient(135deg,#818cf8,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 20px rgba(99,102,241,0.4))">00:00:00</div>
+            <div id="hr-live-date" style="font-size:11.5px;color:var(--text-muted);letter-spacing:0.3px;margin-top:3px">—</div>
+          </div>
+          <div class="header-actions">
+            <button id="hr-btn-export" class="btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Laporan
+            </button>
+          </div>
+        </header>
+
+        <main class="content-area">
+
+          <!-- OVERVIEW PANEL -->
+          <section id="hrpanel-overview" class="hrpanel" style="display:block">
+            <p class="page-title">Ringkasan HR</p>
+            <p class="page-sub">Statistik kehadiran dan pengajuan hari ini</p>
+            <div class="stats-grid section-gap" style="grid-template-columns:repeat(4,1fr)">
+              <div class="stat-card stat-card--blue">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div id="hr-total-emp" class="stat-value">0</div>
+                <div class="stat-label">Total Karyawan</div>
+                <div class="stat-sub">Aktif</div>
+              </div>
+              <div class="stat-card stat-card--green">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                <div id="hr-hadir-today" class="stat-value">0</div>
+                <div class="stat-label">Hadir Hari Ini</div>
+                <div class="stat-sub">Sudah absen</div>
+              </div>
+              <div class="stat-card stat-card--amber">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <div id="hr-late-today" class="stat-value">0</div>
+                <div class="stat-label">Terlambat</div>
+                <div class="stat-sub">Hari ini</div>
+              </div>
+              <div class="stat-card" style="background:rgba(244,63,94,0.06);border-color:rgba(244,63,94,0.15)">
+                <div class="stat-icon" style="color:var(--rose-400)"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+                <div id="hr-pending-approval" class="stat-value" style="color:var(--rose-400)">0</div>
+                <div class="stat-label">Perlu Approval</div>
+                <div class="stat-sub">Menunggu</div>
+              </div>
+            </div>
+            <div class="settings-section section-gap">
+              <div class="settings-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Pengajuan Terbaru</div>
+              <div id="hr-recent-requests" class="recent-activities"></div>
+            </div>
+          </section>
+
+          <!-- APPROVAL PANEL -->
+          <section id="hrpanel-approval" class="hrpanel" style="display:none">
+            <p class="page-title">Approval Pengajuan</p>
+            <p class="page-sub">Tinjau dan setujui/tolak pengajuan dari karyawan</p>
+            <div class="approval-filters section-gap">
+              <button class="approval-filter-btn active" data-filter="pending">Menunggu</button>
+              <button class="approval-filter-btn" data-filter="all">Semua</button>
+              <button class="approval-filter-btn" data-filter="leave">Izin/Cuti/Sakit</button>
+              <button class="approval-filter-btn" data-filter="overtime">Lembur</button>
+            </div>
+            <div id="hr-approval-list"></div>
+          </section>
+
+          <!-- EMPLOYEES PANEL -->
+          <section id="hrpanel-employees" class="hrpanel" style="display:none">
+            <p class="page-title">Data Karyawan</p>
+            <p class="page-sub">Status kehadiran dan data karyawan hari ini</p>
+            <div class="table-wrapper section-gap">
+              <table class="history-table">
+                <thead><tr><th>Nama</th><th>ID</th><th>Departemen</th><th>Jabatan</th><th>Status Hari Ini</th><th>Waktu Absen</th></tr></thead>
+                <tbody id="hr-emp-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- REPORTS PANEL -->
+          <section id="hrpanel-reports" class="hrpanel" style="display:none">
+            <div class="table-header">
+              <div>
+                <p class="page-title">Laporan Absensi</p>
+                <p class="page-sub" style="margin-bottom:0">Rekap kehadiran bulanan per karyawan</p>
+              </div>
+              <div class="table-actions">
+                <select id="hr-report-month" class="form-input" style="padding:8px 12px;font-size:13px;min-width:180px"><option value="">Pilih bulan...</option></select>
+                <button id="hr-btn-export" class="btn-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper section-gap">
+              <table class="history-table">
+                <thead><tr><th>Nama</th><th>Departemen</th><th style="text-align:center">Total Hadir</th><th style="text-align:center">Tepat Waktu</th><th style="text-align:center">Terlambat</th><th>Rata-rata/Hari</th></tr></thead>
+                <tbody id="hr-report-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ANNOUNCEMENT PANEL -->
+          <section id="hrpanel-announce" class="hrpanel" style="display:none">
+            <p class="page-title">Manajemen Pengumuman</p>
+            <p class="page-sub">Buat dan kelola pengumuman untuk karyawan</p>
+            <div class="settings-section section-gap">
+              <div class="settings-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Buat Pengumuman Baru</div>
+              <form id="hr-announce-form">
+                <div class="form-group">
+                  <label class="form-label" for="ann-title">Judul Pengumuman</label>
+                  <input id="ann-title" type="text" class="form-input" placeholder="Contoh: Jadwal Cuti Bersama..." required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ann-content">Isi Pengumuman</label>
+                  <textarea id="ann-content" class="form-input" rows="4" placeholder="Tuliskan isi pengumuman..." required style="resize:vertical;min-height:100px"></textarea>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label" for="ann-target">Target Penerima</label>
+                    <select id="ann-target" class="form-input">
+                      <option value="all">Semua (Karyawan + HR)</option>
+                      <option value="employee">Karyawan Saja</option>
+                      <option value="hr">HR Saja</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;display:flex;align-items:center;gap:10px;padding-bottom:2px">
+                    <input id="ann-pinned" type="checkbox" style="width:16px;height:16px;accent-color:var(--gold-400)" />
+                    <label class="form-label" for="ann-pinned" style="margin:0;cursor:pointer">📌 Pin di atas</label>
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top:16px">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Terbitkan Pengumuman
+                </button>
+              </form>
+            </div>
+            <div class="section-gap">
+              <div class="card-header" style="margin-bottom:14px"><span class="card-title">Semua Pengumuman</span></div>
+              <div id="hr-announce-list"></div>
+            </div>
+          </section>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- ─── ADMIN MOBILE BOTTOM NAV ────────────────────────────────────── -->
+    <nav id="adm-mobile-nav" class="mobile-nav" style="display: none;">
+      <button class="nav-item active atab-btn" data-atab="overview">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span class="nav-item-label">Ringkasan</span>
+      </button>
+      <button class="nav-item atab-btn" data-atab="today">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
+        <span class="nav-item-label">Absensi</span>
+      </button>
+      <button class="nav-item atab-btn" data-atab="employees">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="nav-item-label">Karyawan</span>
+      </button>
+      <button class="nav-item atab-btn" data-atab="reports">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </span>
+        <span class="nav-item-label">Laporan</span>
+      </button>
+      <button id="adm-mobile-logout" class="nav-item">
+        <span class="nav-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span>
+        <span class="nav-item-label">Keluar</span>
+      </button>
+    </nav>
+
+    <!-- ─── ADMIN DASHBOARD ────────────────────────────────────────────── -->
+    <div id="admin-container" class="app-shell" style="display: none;">
+      
+      <!-- Sidebar Admin -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <div class="brand-icon">
+              <!-- shield -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="brand-name">AbsensiGPS</span>
+          </div>
+          <div class="brand-sub">Admin Portal</div>
+        </div>
+
+        <div class="sidebar-employee">
+          <div class="employee-card">
+            <div class="employee-avatar">
+              <!-- shield-check -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            </div>
+            <div class="employee-info">
+              <div id="adm-user-name" class="employee-name">Administrator</div>
+              <div class="employee-meta" style="color: var(--gold-400)">Super Admin</div>
+              <div class="employee-id">Portal Utama</div>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Panel Admin</div>
+          <button id="atab-overview" class="tab-btn active atab-btn" data-atab="overview">
+            <span class="tab-icon">
+              <!-- layout-dashboard -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </span> Ringkasan
+          </button>
+          <button id="atab-today" class="tab-btn atab-btn" data-atab="today">
+            <span class="tab-icon">
+              <!-- calendar -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span> Absensi Hari Ini
+          </button>
+          <button id="atab-employees" class="tab-btn atab-btn" data-atab="employees">
+            <span class="tab-icon">
+              <!-- users -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span> Kelola Karyawan
+          </button>
+          <button id="atab-reports" class="tab-btn atab-btn" data-atab="reports">
+            <span class="tab-icon">
+              <!-- trending-up -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </span> Laporan Bulanan
+          </button>
+          <button id="adm-logout" class="tab-btn" style="margin-top: auto; color: var(--rose-400)">
+            <span class="tab-icon">
+              <!-- log-out -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </span> Keluar
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Main Admin Content -->
+      <div class="main-content">
+        <!-- Header -->
+        <header class="app-header">
+          <div class="header-clock">
+            <div id="adm-live-time" style="font-family: var(--font-mono); font-size: 30px; font-weight: 600; background: var(--grad-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(212,160,23,0.4));">00:00:00</div>
+            <div id="adm-live-date" style="font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.3px; margin-top: 3px;">—</div>
+          </div>
+          <div class="header-actions">
+            <button id="adm-btn-export" class="btn-sm">
+              <!-- download -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Semua Data
+            </button>
+          </div>
+        </header>
+
+        <!-- Admin Content Area -->
+        <main class="content-area">
+
+          <!-- OVERVIEW PANEL -->
+          <section id="apanel-overview" class="apanel" style="display: block;">
+            <p class="page-title">Ringkasan Sistem</p>
+            <p class="page-sub">Statistik keseluruhan data absensi karyawan</p>
+
+            <div class="stats-grid section-gap" style="grid-template-columns: repeat(4, 1fr);">
+              <div class="stat-card stat-card--blue">
+                <div class="stat-icon">
+                  <!-- users -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div id="adm-total-emp" class="stat-value">0</div>
+                <div class="stat-label">Total Karyawan</div>
+                <div class="stat-sub">Terdaftar</div>
+              </div>
+              <div class="stat-card stat-card--green">
+                <div class="stat-icon">
+                  <!-- check-circle -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div id="adm-hadir-today" class="stat-value">0</div>
+                <div class="stat-label">Hadir Hari Ini</div>
+                <div class="stat-sub">Aktif</div>
+              </div>
+              <div class="stat-card stat-card--blue">
+                <div class="stat-icon">
+                  <!-- clock -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div id="adm-ontime-today" class="stat-value">0</div>
+                <div class="stat-label">Tepat Waktu</div>
+                <div class="stat-sub">Hari ini</div>
+              </div>
+              <div class="stat-card stat-card--amber">
+                <div class="stat-icon">
+                  <!-- alert-triangle -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div id="adm-late-today" class="stat-value">0</div>
+                <div class="stat-label">Terlambat</div>
+                <div class="stat-sub">Hari ini</div>
+              </div>
+            </div>
+
+            <!-- Monthly summary metrics -->
+            <div class="settings-grid section-gap" style="margin-top: 24px;">
+              <div class="settings-section" style="padding: 24px;">
+                <div class="settings-section-title">
+                  <!-- bar-chart-2 -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Akumulasi Bulan Ini
+                </div>
+                <div class="today-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                  <div class="gps-item" style="background: rgba(59,130,246,0.04); border-color: rgba(59,130,246,0.1)">
+                    <span class="gps-label" style="color: var(--sapphire-400)">TOTAL HADIR</span>
+                    <span id="adm-month-hadir" class="gps-val" style="color: var(--text-primary); font-size: 24px;">0</span>
+                  </div>
+                  <div class="gps-item" style="background: rgba(244,63,94,0.04); border-color: rgba(244,63,94,0.1)">
+                    <span class="gps-label" style="color: var(--rose-400)">TOTAL TERLAMBAT</span>
+                    <span id="adm-month-late" class="gps-val" style="color: var(--text-primary); font-size: 24px;">0</span>
+                  </div>
+                </div>
+                <!-- Sparkline chart injected here by admin.ts -->
+                <div id="adm-sparkline"></div>
+              </div>
+
+              <div class="settings-section">
+                <div class="settings-section-title">
+                  <!-- bell -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  Aktivitas Absensi Terbaru
+                </div>
+                <div id="adm-recent-activity" class="recent-activities">
+                  <!-- dynamically loaded -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TODAY ATTENDANCE PANEL -->
+          <section id="apanel-today" class="apanel" style="display: none;">
+            <p class="page-title">Kehadiran Hari Ini</p>
+            <p class="page-sub">Daftar kehadiran real-time seluruh karyawan</p>
+
+            <div class="table-wrapper">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Departemen</th>
+                    <th>Jabatan</th>
+                    <th>Clock In</th>
+                    <th>Clock Out</th>
+                    <th>Durasi Kerja</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="adm-today-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- EMPLOYEES PANEL -->
+          <section id="apanel-employees" class="apanel" style="display: none;">
+            <div class="table-header">
+              <div>
+                <p class="page-title">Kelola Karyawan</p>
+                <p class="page-sub" style="margin-bottom:0">Daftar akun login dan data profil karyawan</p>
+              </div>
+              <button id="adm-btn-add-emp" class="btn-primary">
+                <!-- plus-circle -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Tambah Karyawan
+              </button>
+            </div>
+
+            <!-- Form tambah karyawan (collapsible) -->
+            <div id="adm-add-emp-form" class="settings-section section-gap" style="display: none; margin-bottom: 24px;">
+              <div class="settings-section-title">
+                <!-- user-plus -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                Form Tambah Karyawan Baru
+              </div>
+              <form id="adm-form-add-emp">
+                <div class="settings-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+                  <div class="form-group">
+                    <label class="form-label">Nama Lengkap *</label>
+                    <input type="text" id="adm-new-name" class="form-input" placeholder="Nama..." required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">ID Karyawan *</label>
+                    <input type="text" id="adm-new-empid" class="form-input" placeholder="EMP00x..." required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Username Login *</label>
+                    <input type="text" id="adm-new-username" class="form-input" placeholder="Username..." required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Password *</label>
+                    <input type="password" id="adm-new-password" class="form-input" placeholder="Password..." required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Jabatan</label>
+                    <input type="text" id="adm-new-position" class="form-input" placeholder="Developer, Staff, dll..." />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Departemen</label>
+                    <input type="text" id="adm-new-dept" class="form-input" placeholder="IT, HR, Sales, dll..." />
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary">
+                  <!-- save -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Simpan Karyawan
+                </button>
+              </form>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Karyawan</th>
+                    <th>ID Karyawan</th>
+                    <th>Username</th>
+                    <th>Jabatan</th>
+                    <th>Departemen</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="adm-emp-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- REPORTS PANEL -->
+          <section id="apanel-reports" class="apanel" style="display: none;">
+            <p class="page-title">Laporan Bulanan Karyawan</p>
+            <p class="page-sub">Persentase &amp; ringkasan absensi bulan <span id="adm-report-month" style="font-weight:700; color:var(--gold-400)">Bulan</span></p>
+
+            <div class="table-wrapper">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Nama Karyawan</th>
+                    <th>Departemen</th>
+                    <th style="text-align:center">Total Hadir</th>
+                    <th style="text-align:center">Tepat Waktu</th>
+                    <th style="text-align:center">Terlambat</th>
+                    <th>Rata-rata Kerja / Hari</th>
+                  </tr>
+                </thead>
+                <tbody id="adm-report-tbody">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- Loading app script -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
