@@ -160,7 +160,17 @@ function renderTodayAttendance(records: AttendanceRecord[], users: AuthUser[]): 
 
     return `
       <tr class="history-row">
-        <td data-label="Nama"><strong style="color:var(--text-primary)">${emp.name}</strong></td>
+        <td data-label="Karyawan">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(212,160,23,0.08);border:1.5px solid rgba(212,160,23,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold-300);flex-shrink:0;font-family:var(--font-body);letter-spacing:0.5px">
+              ${emp.name[0].toUpperCase()}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <strong style="color:var(--text-primary)">${emp.name}</strong>
+              <span style="font-size:11px;color:var(--text-muted)">${emp.employeeId ?? '—'}</span>
+            </div>
+          </div>
+        </td>
         <td data-label="Departemen" style="color:var(--text-secondary)">${emp.department}</td>
         <td data-label="Jabatan" style="color:var(--text-secondary)">${emp.position}</td>
         <td data-label="Clock In"><span class="time-chip time-chip--in">${clockIn}</span></td>

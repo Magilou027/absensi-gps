@@ -4,6 +4,7 @@ export interface GpsCoordinates {
   accuracy: number;
   altitude: number | null;
   timestamp: number;
+  isMocked?: boolean;
 }
 
 export interface AttendanceRecord {

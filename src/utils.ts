@@ -81,17 +81,57 @@ export function getCurrentPosition(): Promise<GpsCoordinates> {
       reject(new Error('Geolocation tidak didukung oleh browser ini.'));
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        resolve({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          altitude: pos.coords.altitude,
-          timestamp: pos.timestamp,
-        });
-      },
-      (err) => {
+
+    const getPos = (): Promise<GeolocationPosition> => {
+      return new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+      });
+    };
+
+    getPos()
+      .then((pos1) => {
+        // 1. Cek properti injected dari native app (misal: Capacitor/Cordova)
+        if ((pos1 as any).mocked) {
+          reject(new Error('Fake GPS terdeteksi. Harap matikan aplikasi Fake GPS.'));
+          return;
+        }
+
+        // 2. Teknik Jitter Checking
+        // GPS asli di perangkat mobile selalu memiliki sedikit fluktuasi pada koordinat.
+        // Kita ambil posisi kedua setelah delay singkat untuk membandingkan.
+        setTimeout(() => {
+          getPos().then((pos2) => {
+            // Jika koordinat sama persis (identik) setelah jeda waktu, kemungkinan besar itu Mock Location / Fake GPS
+            if (
+              pos1.coords.latitude === pos2.coords.latitude &&
+              pos1.coords.longitude === pos2.coords.longitude
+            ) {
+              reject(new Error('Indikasi Fake GPS terdeteksi (Lokasi tidak natural). Harap gunakan GPS asli.'));
+              return;
+            }
+
+            resolve({
+              latitude: pos2.coords.latitude,
+              longitude: pos2.coords.longitude,
+              accuracy: pos2.coords.accuracy,
+              altitude: pos2.coords.altitude,
+              timestamp: pos2.timestamp,
+              isMocked: false
+            });
+          }).catch(() => {
+             // Fallback ke posisi pertama jika yang kedua gagal
+             resolve({
+                latitude: pos1.coords.latitude,
+                longitude: pos1.coords.longitude,
+                accuracy: pos1.coords.accuracy,
+                altitude: pos1.coords.altitude,
+                timestamp: pos1.timestamp,
+                isMocked: false
+             });
+          });
+        }, 1500); // 1.5 detik delay
+      })
+      .catch((err) => {
         let msg = 'Gagal mendapatkan lokasi GPS.';
         switch (err.code) {
           case err.PERMISSION_DENIED:
@@ -105,9 +145,7 @@ export function getCurrentPosition(): Promise<GpsCoordinates> {
             break;
         }
         reject(new Error(msg));
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
+      });
   });
 }
 

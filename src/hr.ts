@@ -283,12 +283,12 @@ function renderHREmployees(): void {
       ? `<span class="req-badge ${todayRec.clockIn.status === 'on-time' ? 'badge-green' : 'badge-amber'}">${todayRec.clockIn.status === 'on-time' ? 'Hadir' : 'Terlambat'}</span>`
       : '<span class="req-badge badge-gray">Belum Absen</span>';
     return `<tr>
-      <td style="font-weight:600">${u.name}</td>
-      <td>${u.employeeId ?? '—'}</td>
-      <td>${u.department}</td>
-      <td>${u.position}</td>
-      <td>${statusBadge}</td>
-      <td>
+      <td data-label="Nama" style="font-weight:600">${u.name}</td>
+      <td data-label="ID">${u.employeeId ?? '—'}</td>
+      <td data-label="Departemen">${u.department}</td>
+      <td data-label="Jabatan">${u.position}</td>
+      <td data-label="Status Hari Ini">${statusBadge}</td>
+      <td data-label="Waktu Absen">
         ${todayRec?.clockIn ? `<small>${formatTimeShort(new Date(todayRec.clockIn.time))}</small>` : '—'}
         ${todayRec?.clockOut ? ` → <small>${formatTimeShort(new Date(todayRec.clockOut.time))}</small>` : ''}
       </td>
@@ -334,12 +334,12 @@ function renderHRReportTable(month: string): void {
     const avgMin = hadir > 0 ? Math.round(totalMinutes / hadir) : 0;
 
     return `<tr>
-      <td style="font-weight:600">${u.name}</td>
-      <td>${u.department}</td>
-      <td style="text-align:center"><strong style="color:var(--gold-400)">${hadir}</strong></td>
-      <td style="text-align:center"><span style="color:var(--emerald-400)">${ontime}</span></td>
-      <td style="text-align:center"><span style="color:var(--amber-400)">${late}</span></td>
-      <td>${avgMin > 0 ? minutesToDuration(avgMin) : '—'}</td>
+      <td data-label="Nama Karyawan" style="font-weight:600">${u.name}</td>
+      <td data-label="Departemen">${u.department}</td>
+      <td data-label="Total Hadir" style="text-align:center"><strong style="color:var(--gold-400)">${hadir}</strong></td>
+      <td data-label="Tepat Waktu" style="text-align:center"><span style="color:var(--emerald-400)">${ontime}</span></td>
+      <td data-label="Terlambat" style="text-align:center"><span style="color:var(--amber-400)">${late}</span></td>
+      <td data-label="Rata-rata Kerja / Hari">${avgMin > 0 ? minutesToDuration(avgMin) : '—'}</td>
     </tr>`;
   }).join('');
 
