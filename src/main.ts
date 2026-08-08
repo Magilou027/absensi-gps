@@ -112,6 +112,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ─── Theme Toggle ────────────────────────────────────────────────────────────
+  const themeToggles = document.querySelectorAll('.btn-theme-toggle');
+  const savedTheme = localStorage.getItem('absensi_theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.querySelectorAll('.icon-sun').forEach(el => (el as HTMLElement).style.display = 'block');
+    document.querySelectorAll('.icon-moon').forEach(el => (el as HTMLElement).style.display = 'none');
+  }
+
+  themeToggles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('absensi_theme', 'dark');
+        document.querySelectorAll('.icon-sun').forEach(el => (el as HTMLElement).style.display = 'none');
+        document.querySelectorAll('.icon-moon').forEach(el => (el as HTMLElement).style.display = 'block');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('absensi_theme', 'light');
+        document.querySelectorAll('.icon-sun').forEach(el => (el as HTMLElement).style.display = 'block');
+        document.querySelectorAll('.icon-moon').forEach(el => (el as HTMLElement).style.display = 'none');
+      }
+    });
+  });
+
   // ─── Initial render ──────────────────────────────────────────────────────────
   renderView();
 });

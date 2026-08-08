@@ -1,7 +1,7 @@
 import type { AppConfig, AttendanceRecord, Employee, DashboardStats, GpsCoordinates } from './types';
 import {
   loadRecords, saveRecords, loadEmployee, saveEmployee,
-  loadConfig, saveConfig,
+  loadConfig,
   getCurrentPosition, reverseGeocode, calculateDistance,
   getISODate, getAttendanceStatus, generateId,
   formatTime, formatDate, minutesToDuration, exportToCSV,
@@ -14,7 +14,7 @@ import {
 } from './ui';
 import {
   initMap, updateUserPosition, addAttendanceMarker,
-  clearAttendanceMarkers, updateOfficeLocation, resizeMap,
+  clearAttendanceMarkers, resizeMap,
 } from './map';
 import { getCurrentSession, getUsers, saveUsers } from './auth';
 import {
@@ -431,12 +431,10 @@ function setupEventListeners(): void {
     showToast('Riwayat absensi dihapus', 'info');
   });
 
-  // Settings save
-  document.getElementById('btn-save-settings')?.addEventListener('click', () => {
-    const { config: newConfig, emp: newEmp } = getSettingsFormValues();
-    config = newConfig;
+  // Settings save for Employee
+  document.getElementById('btn-save-emp-settings')?.addEventListener('click', () => {
+    const { emp: newEmp } = getSettingsFormValues();
     employee = newEmp;
-    saveConfig(config);
     saveEmployee(employee);
 
     const session = getCurrentSession();
@@ -455,12 +453,13 @@ function setupEventListeners(): void {
       }
     }
     renderEmployee(employee);
-    updateOfficeLocation(config.officeLocation);
     const heroGreeting = document.getElementById('hero-greeting');
     if (heroGreeting) heroGreeting.textContent = `Halo, ${employee.name}!`;
-    showToast('Pengaturan disimpan!', 'success');
+    showToast('Profil disimpan!', 'success');
     setActiveTab('home');
   });
+
+
 
   // ─── Leave Sub-tabs ────────────────────────────────────────────────────────
   document.querySelectorAll('.leave-subtab').forEach(btn => {

@@ -46,7 +46,7 @@ export function initMap(containerId: string, office: OfficeLocation): void {
     attributionControl: false,
   }).setView([office.latitude, office.longitude], 16);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
   }).addTo(map);
 
@@ -113,4 +113,78 @@ export function resizeMap(): void {
 
 export function getMap(): L.Map | null {
   return map;
+}
+
+let hrMap: L.Map | null = null;
+let hrOfficeMarker: L.Marker | null = null;
+let hrOfficeCircle: L.Circle | null = null;
+
+export function initHrSettingsMap(
+  containerId: string, 
+  office: OfficeLocation, 
+  onChange: (lat: number, lng: number) => void
+): void {
+  if (hrMap) {
+    hrMap.invalidateSize();
+    const latlng: L.LatLngTuple = [office.latitude, office.longitude];
+    hrMap.setView(latlng, 16);
+    hrOfficeMarker?.setLatLng(latlng);
+    hrOfficeCircle?.setLatLng(latlng).setRadius(office.radius);
+    return;
+  }
+
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  hrMap = L.map(containerId, {
+    zoomControl: false,
+    attributionControl: false,
+  }).setView([office.latitude, office.longitude], 16);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(hrMap);
+
+  L.control.zoom({ position: 'bottomright' }).addTo(hrMap);
+
+  hrOfficeCircle = L.circle([office.latitude, office.longitude], {
+    radius: office.radius,
+    color: '#4f8ef7',
+    fillColor: '#4f8ef7',
+    fillOpacity: 0.12,
+    weight: 2,
+    dashArray: '6 4',
+  }).addTo(hrMap);
+
+  hrOfficeMarker = L.marker([office.latitude, office.longitude], { icon: officeIcon, draggable: true })
+    .addTo(hrMap)
+    .bindPopup('Geser pin atau klik peta untuk mengatur lokasi');
+
+  // Handle marker drag
+  hrOfficeMarker.on('dragend', () => {
+    const pos = hrOfficeMarker!.getLatLng();
+    hrOfficeCircle?.setLatLng(pos);
+    onChange(pos.lat, pos.lng);
+  });
+
+  // Handle map click
+  hrMap.on('click', (e) => {
+    const latlng = e.latlng;
+    hrOfficeMarker?.setLatLng(latlng);
+    hrOfficeCircle?.setLatLng(latlng);
+    onChange(latlng.lat, latlng.lng);
+  });
+}
+
+export function updateHrSettingsMapRadius(radius: number): void {
+  if (hrOfficeCircle) {
+    hrOfficeCircle.setRadius(radius);
+  }
+}
+
+export function updateHrSettingsMapLocation(lat: number, lng: number): void {
+  const latlng: L.LatLngTuple = [lat, lng];
+  if (hrOfficeMarker) hrOfficeMarker.setLatLng(latlng);
+  if (hrOfficeCircle) hrOfficeCircle.setLatLng(latlng);
+  if (hrMap) hrMap.setView(latlng, hrMap.getZoom(), { animate: true });
 }

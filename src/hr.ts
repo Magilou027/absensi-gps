@@ -1,7 +1,7 @@
 import type { Session } from './auth';
 import { getUsers } from './auth';
-import { loadRecords, getISODate, formatTimeShort, minutesToDuration, exportToCSV } from './utils';
-import { showToast } from './ui';
+import { loadRecords, getISODate, formatTimeShort, minutesToDuration, exportToCSV, loadConfig, loadEmployee, saveConfig } from './utils';
+import { showToast, populateSettingsForm, getSettingsFormValues } from './ui';
 import {
   loadLeaveRequests, approveLeaveRequest, rejectLeaveRequest,
   loadOvertimeRequests, approveOvertimeRequest, rejectOvertimeRequest,
@@ -10,6 +10,7 @@ import {
 import {
   loadAnnouncements, createAnnouncement, deleteAnnouncement, togglePin, relativeDate,
 } from './announcement';
+import { initHrSettingsMap, updateHrSettingsMapRadius, updateHrSettingsMapLocation } from './map';
 
 // Re-export relativeDate so it works from this module's import
 export { relativeDate };
@@ -58,6 +59,16 @@ function setHRTab(tabId: string): void {
     case 'employees':   renderHREmployees(); break;
     case 'reports':     renderHRReports(); break;
     case 'announce':    renderAnnouncementsManager(); break;
+    case 'settings':
+      const currentConfig = loadConfig();
+      populateSettingsForm(currentConfig, loadEmployee());
+      setTimeout(() => {
+        initHrSettingsMap('hr-settings-map', currentConfig.officeLocation, (lat, lng) => {
+          (document.getElementById('setting-lat') as HTMLInputElement).value = lat.toFixed(6);
+          (document.getElementById('setting-lng') as HTMLInputElement).value = lng.toFixed(6);
+        });
+      }, 100);
+      break;
   }
 }
 
@@ -440,6 +451,53 @@ function setupHREventListeners(): void {
     showToast('✅ Pengumuman berhasil diterbitkan!', 'success');
   });
 
+  // Map settings update from inputs
+  const updateMapFromInputs = () => {
+    const lat = parseFloat((document.getElementById('setting-lat') as HTMLInputElement).value) || 0;
+    const lng = parseFloat((document.getElementById('setting-lng') as HTMLInputElement).value) || 0;
+    updateHrSettingsMapLocation(lat, lng);
+  };
+  document.getElementById('setting-lat')?.addEventListener('input', updateMapFromInputs);
+  document.getElementById('setting-lng')?.addEventListener('input', updateMapFromInputs);
+  
+  document.getElementById('setting-radius')?.addEventListener('input', (e) => {
+    const radius = parseFloat((e.target as HTMLInputElement).value) || 0;
+    updateHrSettingsMapRadius(radius);
+  });
+
+  // Map search address
+  document.getElementById('btn-search-address')?.addEventListener('click', async () => {
+    const query = (document.getElementById('setting-search-address') as HTMLInputElement).value.trim();
+    if (!query) { showToast('Masukkan alamat terlebih dahulu', 'error'); return; }
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        (document.getElementById('setting-lat') as HTMLInputElement).value = lat.toFixed(6);
+        (document.getElementById('setting-lng') as HTMLInputElement).value = lon.toFixed(6);
+        updateHrSettingsMapLocation(lat, lon);
+        showToast('Lokasi ditemukan!', 'success');
+      } else {
+        showToast('Lokasi tidak ditemukan', 'error');
+      }
+    } catch (e) {
+      showToast('Gagal mencari lokasi', 'error');
+    }
+  });
+
   // Initial pending badge
   updateHRPendingBadge();
+
+  // Save HR Settings
+  document.getElementById('btn-save-hr-settings')?.addEventListener('click', () => {
+    if (!confirm('Apakah Anda yakin ingin menetapkan perubahan lokasi kantor dan jam kerja ini?')) {
+      return;
+    }
+    const { config: newConfig } = getSettingsFormValues();
+    saveConfig(newConfig);
+    showToast('Pengaturan kantor berhasil ditetapkan!', 'success');
+  });
 }

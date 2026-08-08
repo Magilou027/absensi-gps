@@ -11,8 +11,13 @@ const DEFAULT_ANNUAL_DAYS = 12;
 
 // ─── Leave Requests ───────────────────────────────────────────────────────────
 export function loadLeaveRequests(): LeaveRequest[] {
-  try { return JSON.parse(localStorage.getItem(KEYS.LEAVES) ?? '[]'); }
-  catch { return []; }
+  try {
+    const raw = localStorage.getItem(KEYS.LEAVES);
+    const parsed = JSON.parse(raw ?? '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export function saveLeaveRequests(requests: LeaveRequest[]): void {
@@ -55,8 +60,8 @@ export function submitLeaveRequest(
     employeeName,
     department,
     type,
-    startDate,
-    endDate,
+    startDate: startDate ?? correctionDate ?? '',
+    endDate: endDate ?? correctionDate ?? '',
     reason,
     attachment,
     status: 'pending',
@@ -106,21 +111,26 @@ export function getLeaveBalance(employeeId: string): LeaveBalance {
     r => r.employeeId === employeeId && r.status === 'approved'
   );
   const currentYear = new Date().getFullYear().toString();
-  const thisYear = requests.filter(r => r.startDate.startsWith(currentYear));
+  const thisYear = requests.filter(r => (r.startDate ?? '').startsWith(currentYear));
 
   return {
     employeeId,
     annualTotal: DEFAULT_ANNUAL_DAYS,
-    annualUsed: thisYear.filter(r => r.type === 'cuti').reduce((s, r) => s + r.daysCount, 0),
-    sickUsed:   thisYear.filter(r => r.type === 'sakit').reduce((s, r) => s + r.daysCount, 0),
-    izinUsed:   thisYear.filter(r => r.type === 'izin').reduce((s, r) => s + r.daysCount, 0),
+    annualUsed: thisYear.filter(r => r.type === 'cuti').reduce((s, r) => s + (r.daysCount || 0), 0),
+    sickUsed:   thisYear.filter(r => r.type === 'sakit').reduce((s, r) => s + (r.daysCount || 0), 0),
+    izinUsed:   thisYear.filter(r => r.type === 'izin').reduce((s, r) => s + (r.daysCount || 0), 0),
   };
 }
 
 // ─── Overtime Requests ────────────────────────────────────────────────────────
 export function loadOvertimeRequests(): OvertimeRequest[] {
-  try { return JSON.parse(localStorage.getItem(KEYS.OVERTIME) ?? '[]'); }
-  catch { return []; }
+  try {
+    const raw = localStorage.getItem(KEYS.OVERTIME);
+    const parsed = JSON.parse(raw ?? '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export function saveOvertimeRequests(requests: OvertimeRequest[]): void {
