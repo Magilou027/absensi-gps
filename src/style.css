@@ -530,7 +530,7 @@ body::before {
   flex-direction: column;
 }
 
-#live-time {
+#live-time, #hr-live-time, #adm-live-time {
   font-family: var(--font-mono);
   font-size: 30px;
   font-weight: 600;
@@ -3133,6 +3133,10 @@ body::before {
   --shadow-gold: 0 4px 20px rgba(82, 86, 95, 0.12);
   --shadow-sapphire: 0 4px 20px rgba(56, 189, 248, 0.12);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .map-overlay {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 [data-theme="light"] .app-header {

@@ -347,8 +347,6 @@ function renderMonthlyReport(records: AttendanceRecord[], users: AuthUser[]): vo
     const hadir = myRec.length;
     const onTime = myRec.filter(r => r.clockIn?.status === 'on-time').length;
     const late = myRec.filter(r => r.clockIn?.status === 'late').length;
-    const totalMin = myRec.reduce((s, r) => s + (r.workDuration ?? 0), 0);
-    const avgWork = hadir > 0 ? minutesToDuration(Math.round(totalMin / hadir)) : '—';
 
     return `
       <div class="emp-statecard" data-emp-id="${emp.employeeId}" data-month="${thisMonth}">
@@ -400,7 +398,7 @@ function renderEmployeeDetail(empId: string, monthPrefix: string, records: Atten
   const nameEl = document.getElementById('adm-detail-name');
   if (nameEl) nameEl.textContent = emp.name;
   const idEl = document.getElementById('adm-detail-id');
-  if (idEl) idEl.textContent = emp.employeeId;
+  if (idEl) idEl.textContent = emp.employeeId || '';
   const roleEl = document.getElementById('adm-detail-role');
   if (roleEl) roleEl.textContent = emp.department;
 
@@ -468,11 +466,11 @@ function renderEmployeeDetail(empId: string, monthPrefix: string, records: Atten
       }
       
       tIn = rec.clockIn.time;
-      locIn = rec.clockIn.locationStr || 'Lokasi tidak diketahui';
+      locIn = rec.clockIn.address || 'Lokasi tidak diketahui';
       
       if (rec.clockOut) {
         tOut = rec.clockOut.time;
-        locOut = rec.clockOut.locationStr || 'Lokasi tidak diketahui';
+        locOut = rec.clockOut.address || 'Lokasi tidak diketahui';
         timeRange = `${tIn} - ${tOut}`;
         const total = minutesToDuration(rec.workDuration || 0);
         timelineStatus = `<span class="dh-total-val" style="margin-right:8px">${total}</span> <span style="font-size:12px;color:var(--emerald-400)">Selesai</span>`;
