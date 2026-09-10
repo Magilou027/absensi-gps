@@ -61,8 +61,6 @@ export function initApp(): void {
 
   renderEmployee(employee);
 
-  const heroGreeting = document.getElementById('hero-greeting');
-  if (heroGreeting) heroGreeting.textContent = `Halo, ${employee.name}!`;
 
   updateDashboard();
   startClock();
@@ -305,11 +303,11 @@ function renderLeaveHistory(): void {
           </div>
           <div class="request-card-body">
             ${r.type === 'koreksi'
-              ? `<div class="req-info-row"><span>Tanggal Koreksi</span><span>${r.correctionDate ?? r.startDate}</span></div>
+          ? `<div class="req-info-row"><span>Tanggal Koreksi</span><span>${r.correctionDate ?? r.startDate}</span></div>
                  ${r.correctionClockIn ? `<div class="req-info-row"><span>Clock In Koreksi</span><span>${r.correctionClockIn}</span></div>` : ''}
                  ${r.correctionClockOut ? `<div class="req-info-row"><span>Clock Out Koreksi</span><span>${r.correctionClockOut}</span></div>` : ''}`
-              : `<div class="req-info-row"><span>Tanggal</span><span>${r.startDate}${r.endDate !== r.startDate ? ` s.d. ${r.endDate}` : ''} (${r.daysCount} hari)</span></div>`
-            }
+          : `<div class="req-info-row"><span>Tanggal</span><span>${r.startDate}${r.endDate !== r.startDate ? ` s.d. ${r.endDate}` : ''} (${r.daysCount} hari)</span></div>`
+        }
             <div class="req-info-row"><span>Alasan</span><span>${r.reason}</span></div>
             ${r.rejectedReason ? `<div class="req-info-row req-info-row--reject"><span>Alasan Tolak</span><span>${r.rejectedReason}</span></div>` : ''}
             <div class="req-info-row req-info-row--meta"><span>Diajukan</span><span>${relativeDate(r.submittedAt)}</span></div>
@@ -453,8 +451,6 @@ function setupEventListeners(): void {
       }
     }
     renderEmployee(employee);
-    const heroGreeting = document.getElementById('hero-greeting');
-    if (heroGreeting) heroGreeting.textContent = `Halo, ${employee.name}!`;
     showToast('Profil disimpan!', 'success');
     setActiveTab('home');
   });

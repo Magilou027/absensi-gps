@@ -339,9 +339,10 @@ function renderMonthlyReport(records: AttendanceRecord[], users: AuthUser[]): vo
   const employees = users.filter(u => u.role === 'employee');
   const monthRec = records.filter(r => r.date.startsWith(thisMonth));
 
-  const tbody = document.getElementById('adm-report-tbody')!;
+  const grid = document.getElementById('adm-report-grid');
+  if (!grid) return;
 
-  tbody.innerHTML = employees.map(emp => {
+  grid.innerHTML = employees.map(emp => {
     const myRec = monthRec.filter(r => r.employeeId === emp.employeeId && r.clockIn);
     const hadir = myRec.length;
     const onTime = myRec.filter(r => r.clockIn?.status === 'on-time').length;
@@ -350,20 +351,194 @@ function renderMonthlyReport(records: AttendanceRecord[], users: AuthUser[]): vo
     const avgWork = hadir > 0 ? minutesToDuration(Math.round(totalMin / hadir)) : '—';
 
     return `
-      <tr class="history-row">
-        <td data-label="Nama Karyawan"><strong style="color:var(--text-primary)">${emp.name}</strong></td>
-        <td data-label="Departemen" style="color:var(--text-secondary)">${emp.department}</td>
-        <td data-label="Total Hadir" style="text-align:center"><span class="stat-chip stat-chip--blue">${hadir}</span></td>
-        <td data-label="Tepat Waktu" style="text-align:center"><span class="stat-chip stat-chip--green">${onTime}</span></td>
-        <td data-label="Terlambat" style="text-align:center"><span class="stat-chip stat-chip--amber">${late}</span></td>
-        <td data-label="Rata-rata / Hari" style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)">${avgWork}</td>
-      </tr>`;
+      <div class="emp-statecard" data-emp-id="${emp.employeeId}" data-month="${thisMonth}">
+        <div class="esc-header">
+          <div>
+            <div class="esc-name">${emp.name}</div>
+            <div class="esc-dept">${emp.department} &bull; ${emp.employeeId}</div>
+          </div>
+          <div class="eds-avatar" style="width:36px;height:36px;font-size:16px;">
+            ${emp.name.charAt(0).toUpperCase()}
+          </div>
+        </div>
+        <div class="esc-stats">
+          <span class="stat-chip stat-chip--blue">Hadir: ${hadir}</span>
+          <span class="stat-chip stat-chip--green">Tepat: ${onTime}</span>
+          <span class="stat-chip stat-chip--amber">Telat: ${late}</span>
+        </div>
+      </div>
+    `;
   }).join('');
+
+  // Attach click listeners
+  grid.querySelectorAll('.emp-statecard').forEach(card => {
+    card.addEventListener('click', () => {
+      const empId = card.getAttribute('data-emp-id')!;
+      const month = card.getAttribute('data-month')!;
+      renderEmployeeDetail(empId, month, records, users);
+    });
+  });
 
   // Month label
   const label = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const el = document.getElementById('adm-report-month');
   if (el) el.textContent = label;
+}
+
+function renderEmployeeDetail(empId: string, monthPrefix: string, records: AttendanceRecord[], users: AuthUser[]): void {
+  const emp = users.find(u => u.employeeId === empId);
+  if (!emp) return;
+
+  // Show panel
+  document.getElementById('apanel-reports')!.style.display = 'none';
+  const detailPanel = document.getElementById('apanel-employee-detail')!;
+  detailPanel.style.display = 'block';
+
+  // Set Summary
+  const avatarEl = document.getElementById('adm-detail-avatar');
+  if (avatarEl) avatarEl.textContent = emp.name.charAt(0).toUpperCase();
+  const nameEl = document.getElementById('adm-detail-name');
+  if (nameEl) nameEl.textContent = emp.name;
+  const idEl = document.getElementById('adm-detail-id');
+  if (idEl) idEl.textContent = emp.employeeId;
+  const roleEl = document.getElementById('adm-detail-role');
+  if (roleEl) roleEl.textContent = emp.department;
+
+  // Month Display
+  const [year, monthNum] = monthPrefix.split('-');
+  const dateObj = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+  const monthName = dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+  const monthEl = document.getElementById('adm-detail-month');
+  if (monthEl) monthEl.textContent = monthName;
+
+  // Month Navigation
+  const prevBtn = document.getElementById('btn-detail-prev-month')!;
+  const nextBtn = document.getElementById('btn-detail-next-month')!;
+  const newPrev = prevBtn.cloneNode(true);
+  const newNext = nextBtn.cloneNode(true);
+  prevBtn.replaceWith(newPrev);
+  nextBtn.replaceWith(newNext);
+
+  newPrev.addEventListener('click', () => {
+    const prevDate = new Date(parseInt(year), parseInt(monthNum) - 2, 1);
+    const newMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+    renderEmployeeDetail(empId, newMonth, records, users);
+  });
+
+  newNext.addEventListener('click', () => {
+    const nextDate = new Date(parseInt(year), parseInt(monthNum), 1);
+    const newMonth = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+    renderEmployeeDetail(empId, newMonth, records, users);
+  });
+
+  // Render Daily History
+  const listEl = document.getElementById('emp-detail-history-list')!;
+  const daysInMonth = new Date(parseInt(year), parseInt(monthNum), 0).getDate();
+  
+  let html = '';
+  
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dStr = String(i).padStart(2, '0');
+    const fullDate = `${monthPrefix}-${dStr}`;
+    const dayDateObj = new Date(parseInt(year), parseInt(monthNum) - 1, i);
+    const dayName = dayDateObj.toLocaleDateString('id-ID', { weekday: 'long' }).toUpperCase();
+    const formattedDateTitle = `${dayName}, ${i} ${dateObj.toLocaleDateString('id-ID', { month: 'long' }).toUpperCase()} ${year}`;
+    
+    // Check if weekend
+    const isWeekend = dayDateObj.getDay() === 0 || dayDateObj.getDay() === 6;
+
+    const rec = records.find(r => r.employeeId === empId && r.date === fullDate);
+    
+    let dhStatusClass = isWeekend ? 'dh--absen' : 'dh--absen'; // Default libur/absen
+    let attendanceText = isWeekend ? 'Libur' : 'Absen';
+    let timelineStatus = 'Tidak ada jam kerja';
+    let timeRange = '—';
+    let shiftTime = isWeekend ? '—' : '09:00 - 17:00';
+    let shiftCode = isWeekend ? 'OFF' : 'Reguler';
+    let locIn = '—', locOut = '—';
+    let tIn = '', tOut = '';
+
+    if (rec && rec.clockIn) {
+      if (rec.clockIn.status === 'late') {
+        dhStatusClass = 'dh--telat';
+        attendanceText = 'Datang Telat';
+      } else {
+        dhStatusClass = 'dh--hadir';
+        attendanceText = 'Hadir';
+      }
+      
+      tIn = rec.clockIn.time;
+      locIn = rec.clockIn.locationStr || 'Lokasi tidak diketahui';
+      
+      if (rec.clockOut) {
+        tOut = rec.clockOut.time;
+        locOut = rec.clockOut.locationStr || 'Lokasi tidak diketahui';
+        timeRange = `${tIn} - ${tOut}`;
+        const total = minutesToDuration(rec.workDuration || 0);
+        timelineStatus = `<span class="dh-total-val" style="margin-right:8px">${total}</span> <span style="font-size:12px;color:var(--emerald-400)">Selesai</span>`;
+      } else {
+        timeRange = `${tIn} - Belum`;
+        timelineStatus = 'Sedang bekerja';
+      }
+    }
+
+    html += `
+      <div class="dh-group-title">${formattedDateTitle}</div>
+      <div class="daily-history-card ${dhStatusClass}">
+        <div class="dh-status-bar"></div>
+        <div class="dh-row">
+          <div class="dh-label">Jam Kerja</div>
+          <div class="dh-val">
+            <span style="display:inline-block;width:14px;height:14px;background:var(--text-primary);border-radius:2px;margin-right:8px;"></span>
+            ${shiftCode}
+          </div>
+          <div class="dh-time">${shiftTime}</div>
+        </div>
+        <div class="dh-row">
+          <div class="dh-label">Kehadiran</div>
+          <div class="dh-val">
+            <span style="display:inline-block;width:14px;height:14px;border:1px solid var(--text-muted);border-radius:50%;margin-right:8px;"></span>
+            ${attendanceText}
+          </div>
+          <div class="dh-time">${timeRange}</div>
+        </div>
+        
+        <div class="dh-timeline">
+          <div class="dh-timeline-progress" style="width: ${tOut ? '100%' : (tIn ? '50%' : '0%')}"></div>
+          <div class="dh-timeline-dot start"></div>
+          <div class="dh-timeline-dot end"></div>
+        </div>
+        <div class="dh-timeline-labels">
+          <span>${tIn || (isWeekend ? '' : '09:00')}</span>
+          <span>${tOut || (isWeekend ? '' : '17:00')}</span>
+        </div>
+
+        <div class="dh-row" style="align-items:flex-start">
+          <div class="dh-label" style="padding-top:2px">Lokasi Masuk</div>
+          <div style="flex:1">
+            <div class="dh-loc">${rec && rec.clockIn ? 'Terekam' : '—'}</div>
+            <div class="dh-loc-sub">${locIn}</div>
+          </div>
+        </div>
+        <div class="dh-row" style="align-items:flex-start">
+          <div class="dh-label" style="padding-top:2px">Lokasi Keluar</div>
+          <div style="flex:1">
+            <div class="dh-loc">${rec && rec.clockOut ? 'Terekam' : '—'}</div>
+            <div class="dh-loc-sub">${locOut}</div>
+          </div>
+        </div>
+
+        <div class="dh-total">
+          <div class="dh-label">Total Jam</div>
+          <div style="flex:1;text-align:right">
+            ${timelineStatus}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  listEl.innerHTML = html;
 }
 
 // ─── Admin Export ─────────────────────────────────────────────────────────────
@@ -402,6 +577,12 @@ function setupAdminEvents(records: AttendanceRecord[]): void {
     if (records.length === 0) { showToast('Tidak ada data untuk diekspor', 'error'); return; }
     adminExport(records);
     showToast('Data berhasil diekspor!', 'success');
+  });
+
+  // Back button from detail panel
+  document.getElementById('btn-back-to-reports')?.addEventListener('click', () => {
+    document.getElementById('apanel-employee-detail')!.style.display = 'none';
+    document.getElementById('apanel-reports')!.style.display = 'block';
   });
 }
 

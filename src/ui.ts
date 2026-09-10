@@ -43,6 +43,9 @@ export function updateClock(timeStr: string, dateStr: string): void {
   const dateEl = document.getElementById('live-date');
   if (timeEl) timeEl.textContent = timeStr;
   if (dateEl) dateEl.textContent = dateStr;
+  
+  const fcDatetime = document.getElementById('fc-datetime');
+  if (fcDatetime) fcDatetime.textContent = `${dateStr} • ${timeStr}`;
 }
 
 // ─── Employee Profile ─────────────────────────────────────────────────────────
@@ -89,7 +92,8 @@ export function setAttendanceButtonState(
 
 // ─── Today Status Card ────────────────────────────────────────────────────────
 export function renderTodayStatus(record: AttendanceRecord | null): void {
-  const el = document.getElementById('today-status')!;
+  const el = document.getElementById('today-status');
+  if (!el) return;
   if (!record || !record.clockIn) {
     el.innerHTML = `
       <div class="status-empty">
@@ -216,7 +220,8 @@ export function renderHistoryTable(records: AttendanceRecord[]): void {
 export function renderGpsInfo(
   lat: number, lng: number, accuracy: number, altitude: number | null
 ): void {
-  const el = document.getElementById('gps-info')!;
+  const el = document.getElementById('gps-info');
+  if (!el) return;
   el.innerHTML = `
     <div class="gps-grid">
       <div class="gps-item">
@@ -240,7 +245,8 @@ export function renderGpsInfo(
 
 // ─── Distance from Office ─────────────────────────────────────────────────────
 export function renderDistanceInfo(distance: number, radius: number): void {
-  const el = document.getElementById('distance-info')!;
+  const el = document.getElementById('distance-info');
+  if (!el) return;
   const inRange = distance <= radius;
   const iconOk = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
   const iconFar = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber-400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
